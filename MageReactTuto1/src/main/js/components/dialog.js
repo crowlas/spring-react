@@ -14,7 +14,7 @@ class CreateDialog extends React.Component {
 		this.props.attributes.forEach(attribute => {
 			newMage[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onCreate(newMage);
+		this.props.onCreate(newMage, 'mages');
 
 		// clear out the dialog's inputs
 		this.props.attributes.forEach(attribute => {
@@ -34,7 +34,7 @@ class CreateDialog extends React.Component {
 
 		return (
 			<div>
-				<a href="#createMage">Create</a>
+				<a href="#createMage">Create a mage</a>
 
 				<div id="createMage" className="modalDialog">
 					<div>
@@ -54,4 +54,7 @@ class CreateDialog extends React.Component {
 
 }
 
-export default CreateDialog; // Don’t forget to use export default!
+
+
+export {CreateDialog}; // Don’t forget to use export default!
+

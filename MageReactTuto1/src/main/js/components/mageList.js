@@ -43,7 +43,7 @@ class MageList extends React.Component{
 	}
 	
 	render() {
-		const mages = this.props.employees.map(mage =>
+		const mages = this.props.mages.map(mage =>
 			<Mage key={mage._links.self.href} mage={mage} onDelete={this.props.onDelete}/>
 		);
 	

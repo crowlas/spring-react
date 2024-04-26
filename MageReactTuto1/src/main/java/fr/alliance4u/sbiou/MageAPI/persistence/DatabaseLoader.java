@@ -1,6 +1,5 @@
 package fr.alliance4u.sbiou.MageAPI.persistence;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +13,7 @@ public class DatabaseLoader implements CommandLineRunner {
 
 	private final MageRepository repoMage;
 	private final EquipementRepository repoEquip;
-    
 
-    @Autowired
     public DatabaseLoader(MageRepository repoMage, EquipementRepository repoEquip) {
         this.repoMage = repoMage;
         this.repoEquip = repoEquip;
@@ -27,7 +24,6 @@ public class DatabaseLoader implements CommandLineRunner {
     	for (int i = 0; i < 10; i++) {
     		this.repoMage.save(new Mage());
             this.repoEquip.save(new Equipement());
-		}
-    	
+		}    	
     }
 }
