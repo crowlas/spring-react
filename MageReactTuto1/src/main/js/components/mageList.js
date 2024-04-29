@@ -1,5 +1,6 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
+const client = require('./../connection/client');
 
 class MageList extends React.Component{
 	constructor(props) {
@@ -44,7 +45,8 @@ class MageList extends React.Component{
 	
 	render() {
 		const mages = this.props.mages.map(mage =>
-			<Mage key={mage._links.self.href} mage={mage} onDelete={this.props.onDelete}/>
+			<Mage key={mage.entity._links.self.href} mage={mage} attributes={this.props.attributes} 
+					onUpdate={this.props.onUpdate} onDelete={this.props.onDelete}/>
 		);
 	
 		const navLinks = [];
@@ -73,6 +75,7 @@ class MageList extends React.Component{
 							<th>Name</th>
 							<th>Vitality</th>
 							<th></th>
+							<th></th>
 						</tr>
 						{mages}
 					</tbody>
@@ -98,8 +101,13 @@ class Mage extends React.Component{
 	render() {
 		return (
 			<tr>
-				<td>{this.props.mage.name}</td>
-				<td>{this.props.mage.vitality}</td>
+				<td>{this.props.mage.entity.name}</td>
+				<td>{this.props.mage.entity.vitality}</td>
+				<td>
+					<UpdateDialog mage={this.props.mage}
+								  attributes={this.props.attributes}
+								  onUpdate={this.props.onUpdate}/>
+				</td>
 				<td>
 					<button onClick={this.handleDelete}>Delete</button>
 				</td>
@@ -107,5 +115,54 @@ class Mage extends React.Component{
 		)
 	}
 }
+
+class UpdateDialog extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+
+	handleSubmit(e) {
+		e.preventDefault();
+		const updatedMage = {};
+		this.props.attributes.forEach(attribute => {
+			updatedMage[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
+		});
+		this.props.onUpdate(this.props.mage, updatedMage);
+		window.location = "#";
+	}
+
+	render() {
+		const inputs = this.props.attributes.map(attribute =>
+			<p key={this.props.mage.entity[attribute]}>
+				<input type="text" placeholder={attribute}
+					   defaultValue={this.props.mage.entity[attribute]}
+					   ref={attribute} className="field"/>
+			</p>
+		);
+
+		const dialogId = "updateMage-" + this.props.mage.entity._links.self.href;
+
+		return (
+			<div key={this.props.mage.entity._links.self.href}>
+				<a href={"#" + dialogId}>Update</a>
+				<div id={dialogId} className="modalDialog">
+					<div>
+						<a href="#" title="Close" className="close">X</a>
+
+						<h2>Update an mage</h2>
+
+						<form>
+							{inputs}
+							<button onClick={this.handleSubmit}>Update</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+};
 
 export default MageList; // Don’t forget to use export default!

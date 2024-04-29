@@ -26,8 +26,10 @@ class App extends React.Component {
 		this.onCreateREF = this.onCreateREF.bind(this);
 		this.onDelete = this.onDelete.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
+		this.onUpdate = this.onUpdate.bind(this);
 	}
 	
+	/*
 	loadFromServer(pageSize) {
 		followApi([{rel: 'mages', params: {size: pageSize}}]
 		).then(mageCollection => {
@@ -47,8 +49,8 @@ class App extends React.Component {
 				links: mageCollection.entity._links});
 		});
 	}
+	*/
 	
-	/*
 	loadFromServer(pageSize) {
 		followApi([{rel: 'mages', params: {size: pageSize}}]
 		).then(mageCollection => {
@@ -79,7 +81,25 @@ class App extends React.Component {
 			});
 		});
 	}
-	*/
+	
+	onUpdate(rel, newRel) {
+		client({
+			method: 'PUT',
+			path: rel.entity._links.self.href,
+			entity: newRel,
+			headers: {
+				'Content-Type': 'application/json',
+				'If-Match': rel.headers.Etag
+			}
+		}).done(response => {
+			this.loadFromServer(this.state.pageSize);
+		}, response => {
+			if (response.status.code === 412) {
+				alert('DENIED: Unable to update ' +
+					rel.entity._links.self.href + '. Your copy is stale.');
+			}
+		});
+	}
 	
 	onCreateREF(newRel, rel) {
 		followApi([rel]).then(relCollection => {
@@ -119,12 +139,12 @@ class App extends React.Component {
 		});
 	}
 	*/
-	onDelete(mage) {
-		client({method: 'DELETE', path: mage._links.self.href}).done(response => {
+	onDelete(rel) {
+		client({method: 'DELETE', path: rel.entity._links.self.href}).done(response => {
 			this.loadFromServer(this.state.pageSize);
 		});
 	}	
-	
+	/*
 	onNavigate(navUri) {
 		client({method: 'GET', path: navUri}).done(mageCollection => {
 			this.setState({
@@ -132,6 +152,31 @@ class App extends React.Component {
 				attributes: this.state.attributes,
 				pageSize: this.state.pageSize,
 				links: mageCollection.entity._links
+			});
+		});
+	}
+	*/
+	onNavigate(navUri) {
+		client({
+			method: 'GET',
+			path: navUri
+		}).then(mageCollection => {
+			this.links = mageCollection.entity._links;
+
+			return mageCollection.entity._embedded.mages.map(mage =>
+					client({
+						method: 'GET',
+						path: mage._links.self.href
+					})
+			);
+		}).then(magePromises => {
+			return when.all(magePromises);
+		}).done(mages => {
+			this.setState({
+				mages: mages,
+				attributes: Object.keys(this.schema.properties),
+				pageSize: this.state.pageSize,
+				links: this.links
 			});
 		});
 	}
@@ -159,7 +204,9 @@ class App extends React.Component {
 					<MageList mages={this.state.mages}
 							  links={this.state.links}
 							  pageSize={this.state.pageSize}
+							  attributes={this.state.attributes}
 							  onNavigate={this.onNavigate}
+							  onUpdate={this.onUpdate}
 							  onDelete={this.onDelete}
 							  updatePageSize={this.updatePageSize}/>
 	            </div>
@@ -168,55 +215,6 @@ class App extends React.Component {
 		)
 	}
 }
-
-class UpdateDialog extends React.Component {
-
-	constructor(props) {
-		super(props);
-		this.handleSubmit = this.handleSubmit.bind(this);
-	}
-
-	handleSubmit(e) {
-		e.preventDefault();
-		const updatedMage = {};
-		this.props.attributes.forEach(attribute => {
-			updatedMage[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
-		});
-		this.props.onUpdate(this.props.mage, updatedMage);
-		window.location = "#";
-	}
-
-	render() {
-		const inputs = this.props.attributes.map(attribute =>
-			<p key={this.props.mage.entity[attribute]}>
-				<input type="text" placeholder={attribute}
-					   defaultValue={this.props.mage.entity[attribute]}
-					   ref={attribute} className="field"/>
-			</p>
-		);
-
-		const dialogId = "updateMage-" + this.props.mage.entity._links.self.href;
-
-		return (
-			<div key={this.props.mage.entity._links.self.href}>
-				<a href={"#" + dialogId}>Update</a>
-				<div id={dialogId} className="modalDialog">
-					<div>
-						<a href="#" title="Close" className="close">X</a>
-
-						<h2>Update an mage</h2>
-
-						<form>
-							{inputs}
-							<button onClick={this.handleSubmit}>Update</button>
-						</form>
-					</div>
-				</div>
-			</div>
-		)
-	}
-
-};
 
 ReactDOM.render(
 	<App />,
