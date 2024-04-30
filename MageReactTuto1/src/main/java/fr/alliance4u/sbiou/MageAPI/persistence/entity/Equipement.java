@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Min;
 @Entity
 public class Equipement {
     private @Id @GeneratedValue Long id;
-    @Min(value = 1, message = "Vitality should no be inferior to 1")
+    @Min(value = 1, message = "Vitality should not be inferior to 1")
     private int vitality;
     private String name;
     

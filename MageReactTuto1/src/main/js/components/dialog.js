@@ -14,7 +14,7 @@ class CreateDialog extends React.Component {
 		this.props.attributes.forEach(attribute => {
 			newMage[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onCreate(newMage, 'mages');
+		this.props.onCreate(newMage);
 
 		// clear out the dialog's inputs
 		this.props.attributes.forEach(attribute => {
