@@ -99,11 +99,38 @@ class Mage extends React.Component{
 		
 		this.handleDelete = this.handleDelete.bind(this);
 		this.searchEquipements = this.searchEquipements.bind(this);
+		this.removeEquipement = this.removeEquipement.bind(this);
 		
 	}
 
 	handleDelete() {
 		this.props.onDelete(this.props.mage);
+	}
+	
+	removeEquipement(equipement) {		
+		const updatedEquips =  this.state.equipements.filter(
+			f => f._links.self.href != equipement._links.self.href);
+		this.setEquipements(updatedEquips);
+	}
+	
+	addEquipement(equipement) {	
+		const updatedEquips = this.state.equipements.push(equipement);	
+		this.setEquipements(updatedEquips);
+	}
+	
+	setEquipements(updatedEquips){
+		client({
+			method: 'PATCH', 
+			path: this.props.mage.entity._links.self.href,
+			entity: {"equipements":updatedEquips.map(equip => equip._links.self.href)},
+			headers: {'Content-Type': 'application/json'}
+		})
+		.catch(err => alert(JSON.stringify(err.cause.message)))
+		.done(response => {
+			this.setState({
+				equipements: updatedEquips,
+			});
+		});
 	}
 	
 	searchEquipements() {
@@ -120,14 +147,20 @@ class Mage extends React.Component{
 	}
 	
 	render() {
-		const equipements = this.state.isLoaded? (this.state.equipements.length ?
-		this.state.equipements.map(equip => equip.name+" "):"No equipements") : 
-		<button onClick={this.searchEquipements}>Show</button>;
+		
+		const equipements = this.state.isLoaded ? 
+			this.state.equipements.length ? 		
+				this.state.equipements.map(equip => 
+					<RefEquip key={equip._links.self.href} equip={equip} 
+						removeEquip={this.removeEquipement}/>) 
+			: "No equipements" : "";	
+		const showOrAdd = this.state.isLoaded? <button >Add</button>:
+			<button onClick={this.searchEquipements}>Show</button>
 		return (
 			<tr>
 				<td>{this.props.mage.entity.name}</td>
 				<td>{this.props.mage.entity.vitality}</td>
-				<td>{equipements}</td>
+				<td>{equipements}{showOrAdd}</td>
 				<td>
 					<UpdateDialog mage={this.props.mage}
 								  attributes={this.props.attributes}
@@ -139,6 +172,27 @@ class Mage extends React.Component{
 			</tr>
 		)
 	}
+}
+
+class RefEquip extends React.Component {
+	constructor(props) {
+		super(props);
+		this.removeEquip = this.removeEquip.bind(this);
+	}
+	
+	removeEquip() {
+		this.props.removeEquip(this.props.equip);
+	}
+	
+	render(){
+		return (
+			<>
+			<a href={'#equip'+this.props.equip._links.self.href}>{this.props.equip.name}</a>
+			<button onClick={this.removeEquip}>Remove</button>
+			<br/>
+			</>
+		);
+	} 
 }
 
 class UpdateDialog extends React.Component {

@@ -62,7 +62,7 @@ class Equipement extends React.Component{
 	render() {
 		return (
 			<tr>
-				<td>{this.props.equipement.name}</td>
+				<td id={'equip'+this.props.equipement._links.self.href}>{this.props.equipement.name}</td>
 				<td>{this.props.equipement.vitality}</td>
 			</tr>
 		)
