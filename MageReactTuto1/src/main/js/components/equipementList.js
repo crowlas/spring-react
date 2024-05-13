@@ -45,7 +45,7 @@ class EquipementList extends React.Component{
 			<Equipement key={equipement._links.self.href} equipement={equipement}/>
 		);
 		return (
-			<table>
+			<table className="table table-bordered">
 				<tbody>
 					<tr>
 						<th>Name</th>

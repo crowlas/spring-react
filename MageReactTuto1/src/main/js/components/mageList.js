@@ -69,14 +69,17 @@ class MageList extends React.Component{
 					<span>Number of results : </span>
 					<input ref="pageSize" defaultValue={this.props.pageSize} onInput={this.handleInput}/>
 				</p>
-				<table>
-					<tbody>
+				<table className="table table-bordered">
+					<thead>
 						<tr>
 							<th>Name</th>
 							<th>Vitality</th>
+							<th>Equipement</th>
 							<th></th>
 							<th></th>
 						</tr>
+					</thead>
+					<tbody>
 						{mages}
 					</tbody>
 				</table>
@@ -103,6 +106,7 @@ class Mage extends React.Component{
 			<tr>
 				<td>{this.props.mage.entity.name}</td>
 				<td>{this.props.mage.entity.vitality}</td>
+				<td>Show equipements</td>
 				<td>
 					<UpdateDialog mage={this.props.mage}
 								  attributes={this.props.attributes}

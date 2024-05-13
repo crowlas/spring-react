@@ -73,7 +73,9 @@ class App extends React.Component {
 				'Content-Type': 'application/json',
 				'If-Match': rel.headers.Etag
 			}
-		}).done(response => {
+		})
+		.catch(err => alert(JSON.stringify(err.entity.errors)))
+		.done(response => {
 			this.refreshCurrentPage();
 		}, response => {
 			if (response.status.code === 412) {
@@ -91,9 +93,12 @@ class App extends React.Component {
 				entity: newEmployee,
 				headers: {'Content-Type': 'application/json'}
 			})
-		}).then(response => {
+		})
+		.then(response => {
 			return followApi([{rel: 'mages', params: {'size': this.state.pageSize}}]);
-		}).done(response => {
+		})
+		.catch(err => alert(JSON.stringify(err.entity.errors)))
+		.done(response => {
 			if (typeof response.entity._links.last !== "undefined") {
 				this.onNavigate(response.entity._links.last.href);
 			} else {
@@ -194,10 +199,16 @@ class App extends React.Component {
 
 	render() {
 		return (
-			<div>
-				<h1>Mage UI (<span>A demo project by Samuel Biou</span>)</h1>
-				
-				<p>This interface give an easy understable of the mage's' world.</p>
+			<div className="App">
+		      <header className="App-header">
+		        <h1>DEMO Gestionnaire de mages</h1>
+		        <p>
+		        	<span>Un projet REACT permettant d'intéragir avec une </span>
+		        	<a className="App-link" href="http://localhost:8080/api"
+		          		target="_blank" rel="noopener noreferrer">API</a>.
+		        </p>
+		      </header>
+		      <div className='body'>
 				<div id='alertMaj'>
 					<span id='alertMajText'></span>
 					<button id='refreshButton' onClick={this.refreshCurrentPage}>Refresh the page</button>
@@ -214,8 +225,9 @@ class App extends React.Component {
 							  onDelete={this.onDelete}
 							  updatePageSize={this.updatePageSize}/>
 	            </div>
-	            <AppEquipement/>            
-            </div>
+	            <AppEquipement/>
+		      </div>
+		    </div>
 		)
 	}
 }
