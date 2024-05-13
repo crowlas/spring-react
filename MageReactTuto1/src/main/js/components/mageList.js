@@ -94,19 +94,40 @@ class MageList extends React.Component{
 class Mage extends React.Component{
 	constructor(props) {
 		super(props);
+		
+		this.state = {equipements: [], isLoaded: false}; // variables gloabal
+		
 		this.handleDelete = this.handleDelete.bind(this);
+		this.searchEquipements = this.searchEquipements.bind(this);
+		
 	}
 
 	handleDelete() {
 		this.props.onDelete(this.props.mage);
 	}
 	
+	searchEquipements() {
+		//alert(JSON.stringify(this.props.mage.entity._links.self.href));
+		client({method: 'GET', path: this.props.mage.entity._links.self.href+"/equipements"})
+		.done(response => {
+			//alert(JSON.stringify(response.entity._embedded.equipements));
+			this.setState({
+				equipements: response.entity._embedded.equipements,
+				isLoaded: true
+				});
+		});
+		
+	}
+	
 	render() {
+		const equipements = this.state.isLoaded? (this.state.equipements.length ?
+		this.state.equipements.map(equip => equip.name+" "):"No equipements") : 
+		<button onClick={this.searchEquipements}>Show</button>;
 		return (
 			<tr>
 				<td>{this.props.mage.entity.name}</td>
 				<td>{this.props.mage.entity.vitality}</td>
-				<td>Show equipements</td>
+				<td>{equipements}</td>
 				<td>
 					<UpdateDialog mage={this.props.mage}
 								  attributes={this.props.attributes}
@@ -138,7 +159,8 @@ class UpdateDialog extends React.Component {
 	}
 
 	render() {
-		const inputs = this.props.attributes.map(attribute =>
+		const inputs = this.props.attributes
+		.map(attribute =>
 			<p key={this.props.mage.entity[attribute]}>
 				<input type="text" placeholder={attribute}
 					   defaultValue={this.props.mage.entity[attribute]}

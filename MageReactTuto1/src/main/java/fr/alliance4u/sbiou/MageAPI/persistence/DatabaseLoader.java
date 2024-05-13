@@ -1,5 +1,8 @@
 package fr.alliance4u.sbiou.MageAPI.persistence;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +25,14 @@ public class DatabaseLoader implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
     	for (int i = 0; i < 10; i++) {
-    		this.repoMage.save(new Mage());
-            this.repoEquip.save(new Equipement());
+    		Mage mage = new Mage();
+    		Set<Equipement> equips = new HashSet<>();
+    		for (int y = 0; y < i/2; y++) {
+    			equips.add(new Equipement());
+    		}
+    		this.repoEquip.saveAll(equips);
+    		mage.setEquipements(equips);
+            this.repoMage.save(mage);
 		}    	
     }
 }

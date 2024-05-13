@@ -26,7 +26,8 @@ class CreateDialog extends React.Component {
 	}
 
 	render() {
-		const inputs = this.props.attributes.map(attribute =>
+		const inputs = this.props.attributes
+		.map(attribute =>
 			<p key={attribute}>
 				<input type="text" placeholder={attribute} ref={attribute} className="field"/>
 			</p>

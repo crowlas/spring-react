@@ -215,11 +215,11 @@ class App extends React.Component {
 				</div>
 				<div>
 	                <h2>List of mages</h2>
-	                <CreateDialog attributes={this.state.attributes} onCreate={this.onCreate}/>
+	                <CreateDialog attributes={this.state.attributes.filter(attribute => attribute != "equipements")} onCreate={this.onCreate}/>
 					<MageList mages={this.state.mages}
 							  links={this.state.links}
 							  pageSize={this.state.pageSize}
-							  attributes={this.state.attributes}
+							  attributes={this.state.attributes.filter(attribute => attribute != "equipements")}
 							  onNavigate={this.onNavigate}
 							  onUpdate={this.onUpdate}
 							  onDelete={this.onDelete}
