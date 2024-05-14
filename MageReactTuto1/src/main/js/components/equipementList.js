@@ -27,10 +27,10 @@ class AppEquipement extends React.Component {
 		var list = this.state.isHidden? null : <EquipementList equipements={this.state.equipements}  />;
 		return (
 			<div>
-                <h2>List of equipements</h2>
+                <h2>List of prizes</h2>
                 <div>
                 	<button onClick={this.handleToggleIsHidden}>
-                		{Object.keys(this.state.equipements).length === 0 ? 'Search for equipements' : 'Toggle visibility' }
+                		{Object.keys(this.state.equipements).length === 0 ? 'Search for prize' : 'Toggle visibility' }
                 	</button>
                 </div>
                 {list}          
@@ -49,7 +49,8 @@ class EquipementList extends React.Component{
 				<tbody>
 					<tr>
 						<th>Name</th>
-						<th>Vitality</th>
+						<th>Description</th>
+						<th>Score bonus</th>
 					</tr>
 					{equipements}
 				</tbody>
@@ -63,6 +64,7 @@ class Equipement extends React.Component{
 		return (
 			<tr>
 				<td id={'equip'+this.props.equipement._links.self.href}>{this.props.equipement.name}</td>
+				<td>{this.props.equipement.description}</td>
 				<td>{this.props.equipement.vitality}</td>
 			</tr>
 		)

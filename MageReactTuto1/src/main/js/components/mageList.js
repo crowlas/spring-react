@@ -73,9 +73,9 @@ class MageList extends React.Component{
 					<thead>
 						<tr>
 							<th>Name</th>
-							<th>Vitality</th>
-							<th>Equipement</th>
-							<th></th>
+							<th>Description</th>
+							<th>Score</th>
+							<th>Prizes</th>
 							<th></th>
 						</tr>
 					</thead>
@@ -95,12 +95,11 @@ class Mage extends React.Component{
 	constructor(props) {
 		super(props);
 		
-		this.state = {equipements: [], isLoaded: false}; // variables gloabal
+		this.state = {equipements: [], score:"Show prizes first", isLoaded: false}; // variables gloabal
 		
 		this.handleDelete = this.handleDelete.bind(this);
 		this.searchEquipements = this.searchEquipements.bind(this);
 		this.removeEquipement = this.removeEquipement.bind(this);
-		
 	}
 
 	handleDelete() {
@@ -110,15 +109,15 @@ class Mage extends React.Component{
 	removeEquipement(equipement) {		
 		const updatedEquips =  this.state.equipements.filter(
 			f => f._links.self.href != equipement._links.self.href);
-		this.setEquipements(updatedEquips);
+		this.updateEquipements(updatedEquips);
 	}
 	
 	addEquipement(equipement) {	
 		const updatedEquips = this.state.equipements.push(equipement);	
-		this.setEquipements(updatedEquips);
+		this.updateEquipements(updatedEquips);
 	}
 	
-	setEquipements(updatedEquips){
+	updateEquipements(updatedEquips){
 		client({
 			method: 'PATCH', 
 			path: this.props.mage.entity._links.self.href,
@@ -127,9 +126,15 @@ class Mage extends React.Component{
 		})
 		.catch(err => alert(JSON.stringify(err.cause.message)))
 		.done(response => {
-			this.setState({
-				equipements: updatedEquips,
-			});
+			this.setStateEquipements(updatedEquips);
+		});
+	}
+	
+	setStateEquipements(updatedEquips){
+		this.setState({
+			equipements: updatedEquips,
+			isLoaded: true,
+			score:updatedEquips.reduce((acc, e) => acc + e.vitality, 0)
 		});
 	}
 	
@@ -138,10 +143,7 @@ class Mage extends React.Component{
 		client({method: 'GET', path: this.props.mage.entity._links.self.href+"/equipements"})
 		.done(response => {
 			//alert(JSON.stringify(response.entity._embedded.equipements));
-			this.setState({
-				equipements: response.entity._embedded.equipements,
-				isLoaded: true
-				});
+			this.setStateEquipements(response.entity._embedded.equipements);
 		});
 		
 	}
@@ -153,20 +155,19 @@ class Mage extends React.Component{
 				this.state.equipements.map(equip => 
 					<RefEquip key={equip._links.self.href} equip={equip} 
 						removeEquip={this.removeEquipement}/>) 
-			: "No equipements" : "";	
+			: "No prize" : "";	
 		const showOrAdd = this.state.isLoaded? <button >Add</button>:
 			<button onClick={this.searchEquipements}>Show</button>
 		return (
 			<tr>
 				<td>{this.props.mage.entity.name}</td>
-				<td>{this.props.mage.entity.vitality}</td>
+				<td>{this.props.mage.entity.description}</td>
+				<td>{this.state.score}</td>
 				<td>{equipements}{showOrAdd}</td>
 				<td>
 					<UpdateDialog mage={this.props.mage}
 								  attributes={this.props.attributes}
 								  onUpdate={this.props.onUpdate}/>
-				</td>
-				<td>
 					<button onClick={this.handleDelete}>Delete</button>
 				</td>
 			</tr>
@@ -213,28 +214,39 @@ class UpdateDialog extends React.Component {
 	}
 
 	render() {
-		const inputs = this.props.attributes
+		const inputTextArea = this.props.attributes
+		.filter(attribute => attribute=="description")
 		.map(attribute =>
 			<p key={this.props.mage.entity[attribute]}>
-				<input type="text" placeholder={attribute}
-					   defaultValue={this.props.mage.entity[attribute]}
-					   ref={attribute} className="field"/>
+				<label for={attribute} class="form-label">{attribute}</label>
+				<textarea defaultValue={this.props.mage.entity[attribute]}
+					   ref={attribute} className="form-control" rows="5"/>
 			</p>
+		);
+		const inputsSimple = this.props.attributes
+		.filter(attribute => attribute!="description")
+		.map(attribute =>
+			<p key={this.props.mage.entity[attribute]}>
+				<label for={attribute} class="form-label">{attribute}</label>
+				<input type="text" defaultValue={this.props.mage.entity[attribute]}
+					   ref={attribute} className="field form-control"/>
+			</p>			
 		);
 
 		const dialogId = "updateMage-" + this.props.mage.entity._links.self.href;
 
 		return (
 			<div key={this.props.mage.entity._links.self.href}>
-				<a href={"#" + dialogId}>Update</a>
+				<button><a href={"#" + dialogId}>Update</a></button>
 				<div id={dialogId} className="modalDialog">
 					<div>
 						<a href="#" title="Close" className="close">X</a>
 
-						<h2>Update an mage</h2>
+						<h2>Update an article</h2>
 
 						<form>
-							{inputs}
+							{inputsSimple}
+							{inputTextArea}
 							<button onClick={this.handleSubmit}>Update</button>
 						</form>
 					</div>

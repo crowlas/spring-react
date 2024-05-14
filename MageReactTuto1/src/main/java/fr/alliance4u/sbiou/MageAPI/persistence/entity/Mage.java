@@ -2,40 +2,33 @@ package fr.alliance4u.sbiou.MageAPI.persistence.entity;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Version;
-import jakarta.validation.constraints.Min;
 
 @Entity
 public class Mage {
     private @Id @GeneratedValue Long id;
-    @Min(value = 5, message = "Vitality should no be inferior to 5")
-    private int vitality;
+    
     private String name;
+    
+    @Lob
+    @Column
+    private String description;
     
     @OneToMany
     private Set<Equipement> equipements = new HashSet<>();
     
     private @Version @JsonIgnore Long version;
-    
-    private int getRandomVitality() {
-		return ThreadLocalRandom.current().nextInt(5, 43);
-	}
 
-    public Mage() {
-        this.vitality = getRandomVitality();
-    }
-
-    public Mage(int vitality) {
-    	this.vitality = vitality>0 ? vitality : getRandomVitality();
-    }
+    public Mage() {}
     
     public Long getId() {
 		return id;
@@ -46,20 +39,20 @@ public class Mage {
 	}
     
     public String getName(){
-    	return (this.name == null || this.name.isEmpty())? "Mage_"+this.id : this.name;
+    	return (this.name == null || this.name.isEmpty())? "Article_"+this.id : this.name;
     }
     
     public void setName(String name){
         this.name = name;
     }
 
-    public int getVitality() {
-        return vitality;
-    }
+    public String getDescription() {
+		return description;
+	}
 
-    public void setVitality(int vitality) {
-        this.vitality = vitality;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
     
     public Set<Equipement> getEquipements() {
 		return equipements;

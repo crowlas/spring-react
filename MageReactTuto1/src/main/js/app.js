@@ -74,7 +74,7 @@ class App extends React.Component {
 				'If-Match': rel.headers.Etag
 			}
 		})
-		.catch(err => alert(JSON.stringify(err.entity.errors)))
+		.catch(err => alert(JSON.stringify(err.entity.cause.message)))
 		.done(response => {
 			this.refreshCurrentPage();
 		}, response => {
@@ -201,7 +201,7 @@ class App extends React.Component {
 		return (
 			<div className="App">
 		      <header className="App-header">
-		        <h1>DEMO Gestionnaire de mages</h1>
+		        <h1>DEMO Plateform de partage d'articles</h1>
 		        <p>
 		        	<span>Un projet REACT permettant d'intéragir avec une </span>
 		        	<a className="App-link" href="http://localhost:8080/api"
@@ -214,7 +214,7 @@ class App extends React.Component {
 					<button id='refreshButton' onClick={this.refreshCurrentPage}>Refresh the page</button>
 				</div>
 				<div>
-	                <h2>List of mages</h2>
+	                <h2>List of articles</h2>
 	                <CreateDialog attributes={this.state.attributes.filter(attribute => attribute != "equipements")} onCreate={this.onCreate}/>
 					<MageList mages={this.state.mages}
 							  links={this.state.links}
