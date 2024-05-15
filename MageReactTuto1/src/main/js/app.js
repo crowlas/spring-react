@@ -30,6 +30,7 @@ class App extends React.Component {
 		this.refreshCurrentPage = this.refreshCurrentPage.bind(this);
 		this.messageWebsocket = this.messageWebsocket.bind(this);
 		this.initMessageWebsocket = this.initMessageWebsocket.bind(this);
+		
 	}
 	
 	loadFromServer(pageSize) {
@@ -223,6 +224,7 @@ class App extends React.Component {
 							  onNavigate={this.onNavigate}
 							  onUpdate={this.onUpdate}
 							  onDelete={this.onDelete}
+							  refreshCurrentPage={this.refreshCurrentPage}
 							  updatePageSize={this.updatePageSize}/>
 	            </div>
 	            <AppEquipement/>

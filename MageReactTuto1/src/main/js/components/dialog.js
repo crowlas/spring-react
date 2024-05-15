@@ -30,7 +30,7 @@ class CreateDialog extends React.Component {
 		.filter(attribute => attribute=="description")
 		.map(attribute =>
 			<p key={attribute}>
-				<label for={attribute} class="form-label">{attribute}</label>
+				<label htmlFor={attribute} className="form-label">{attribute}</label>
 				<textarea ref={attribute} className="form-control" rows="5"/>
 			</p>
 		);
@@ -38,7 +38,7 @@ class CreateDialog extends React.Component {
 		.filter(attribute => attribute!="description")
 		.map(attribute =>
 			<p key={attribute}>
-				<label for={attribute} class="form-label">{attribute}</label>
+				<label htmlFor={attribute} className="form-label">{attribute}</label>
 				<input type="text" ref={attribute} className="field form-control"/>
 			</p>			
 		);
