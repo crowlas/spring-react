@@ -119,7 +119,7 @@ class Mage extends React.Component{
 			entity: {"equipements":updatedEquips.map(equip => getLink(equip))},
 			headers: {'Content-Type': 'application/json'}
 		})
-		.catch(err => alert(JSON.stringify(err.cause.message)))
+		.catch(err => alert(JSON.stringify(err)))
 		.done(response => {
 			this.searchEquipements();
 		});
@@ -151,7 +151,7 @@ class Mage extends React.Component{
 			: "No prize" : "";	
 		const showOrUpdate = this.state.isLoaded? 
 			<UpdateEquipementDialog key={'updateEquip_'+getLink(this.props.mage)} mage={this.props.mage} attributes={this.props.attributes} 
-					updateEquipements={this.updateEquipements} currentEquips={this.state.equipements}/>:
+					updateEquipements={this.updateEquipements} currentEquipements={this.state.equipements}/>:
 			<button onClick={this.searchEquipements}>Show</button>
 		return (
 			<tr>
@@ -252,31 +252,25 @@ class UpdateEquipementDialog extends React.Component {
 		super(props);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		
-		this.state = {equipements: [], oldEquipements: []}; // variables global
+		this.state = {new_equipements:[]}; // variables global
 	}
 
 	handleSubmit(e) {
 		e.preventDefault();
 		const equips = [];
-		var hasBeenUpdated = false;
-		this.state.equipements.forEach(equip => {
+		this.state.new_equipements.forEach(equip => {
 			const checkbox = document.getElementById(getLink(equip));
 			if(checkbox.checked) {
 				equips.push(checkbox.value.trim());
-				hasBeenUpdated = true;
 			}
 		});
-		this.props.currentEquips.forEach(equip => {
+		this.props.currentEquipements.forEach(equip => {
 			const checkbox = document.getElementById(getLink(equip));
 			if(checkbox.checked) {
 				equips.push(checkbox.value.trim());
-				hasBeenUpdated = true;
 			}
 		});
-		if(hasBeenUpdated){
-			//alert(equips);
-			this.props.updateEquipements(equips);
-		}
+		this.props.updateEquipements(equips);
 		window.location = "#";
 	}
 	
@@ -284,23 +278,22 @@ class UpdateEquipementDialog extends React.Component {
 		this.searchAvailableEquipements();
 	}
 	
-	componentDidUpdate(){
+	componentWillReceiveProps(){
 		this.searchAvailableEquipements();
 	}
 	
 	searchAvailableEquipements() {
 		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
 		.done(response => {
-			var equipements = response.entity._embedded.equipements;
 			this.setState({
-				equipements: equipements,
-				oldEquipements: this.props.currentEquips
+				new_equipements: response.entity._embedded.equipements
 			});
+			
 		});		
 	}
 
 	render() {
-		const selectedEquipements = this.state.oldEquipements.map(equip =>
+		const currentEquipements = this.props.currentEquipements.map(equip =>
 			<div className='form-check' key={getLink(equip)}>
 				<input className="form-check-input" type="checkbox" defaultChecked value={getLink(equip)} id={getLink(equip)}/>
 				<label className="form-check-label" htmlFor={getLink(equip)}>
@@ -308,7 +301,7 @@ class UpdateEquipementDialog extends React.Component {
 				</label>
 			</div>
 		);
-		const availablesEquipements = this.state.equipements.map(equip =>
+		const availablesEquipements = this.state.new_equipements.map(equip =>
 			<div className='form-check' key={getLink(equip)}>
 				<input className="form-check-input" type="checkbox" value={getLink(equip)} id={getLink(equip)}/>
 				<label className="form-check-label" htmlFor={getLink(equip)}>
@@ -324,11 +317,17 @@ class UpdateEquipementDialog extends React.Component {
 				<div id={dialogId} className="modalDialog">
 					<div>
 						<a href="#" title="Close" className="close">X</a>
-						<h2>Give a prize</h2>
+						<h2>Give and retreive prizes</h2>
 
 						<form>
-							{availablesEquipements}
-							{selectedEquipements}
+							<div>
+								<h5>Prizes obtainables</h5>
+								{availablesEquipements}
+							</div>
+							<div>
+								<h5>Already obtained prizes</h5>
+								{currentEquipements}
+							</div>
 							<button onClick={this.handleSubmit}>Update</button>
 						</form>
 					</div>
