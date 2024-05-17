@@ -7,7 +7,6 @@ class AppEquipement extends React.Component {
 		super(props);
 		this.state = {equipements: [], isHidden: true}; // variables gloabal
 		this.handleToggleIsHidden = this.handleToggleIsHidden.bind(this);
-		// this.searchEquipements = this.searchEquipements.bind(this); // not callable from outside
 	}
 	
 	handleToggleIsHidden() {

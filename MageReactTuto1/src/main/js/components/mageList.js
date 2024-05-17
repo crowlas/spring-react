@@ -1,20 +1,9 @@
+import Mage from './Mage';
+
 const React = require('react');
 const ReactDOM = require('react-dom');
 const client = require('./../connection/client');
 
-function getLink(json){
-	return json.entity === undefined? json._links === undefined?
-		json : json._links.self.href : json.entity._links.self.href;
-}
-
-/*
-function searchAvailableEquipements() {
-		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
-		.done(response => {
-			return response.entity._embedded.equipements
-		});		
-	}
-*/
 class MageList extends React.Component{
 	constructor(props) {
 		super(props);
@@ -72,9 +61,10 @@ class MageList extends React.Component{
 	
 	render() {
 		const mages = this.props.mages.map(mage =>
-			<Mage key={getLink(mage)} mage={mage} attributes={this.props.attributes} 
+			<Mage key={mage.entity._links.self.href} mage={mage} attributes={this.props.attributes} 
 					onUpdate={this.props.onUpdate} onDelete={this.props.onDelete}
-					availableEquipements={this.state.availableEquipements} updateAvailableEquipements={this.updateAvailableEquipements}/>
+					availableEquipements={this.state.availableEquipements} 
+					updateAvailableEquipements={this.updateAvailableEquipements}/>
 		);
 	
 		const navLinks = [];
@@ -118,229 +108,6 @@ class MageList extends React.Component{
 			)
 		}
 }
-
-class Mage extends React.Component{
-	constructor(props) {
-		super(props);
-		
-		this.state = {equipements: [], score:"Show prizes first", isLoaded: false}; // variables gloabal
-		
-		this.handleDelete = this.handleDelete.bind(this);
-		this.searchEquipements = this.searchEquipements.bind(this);
-		this.updateEquipements = this.updateEquipements.bind(this);
-	}
-
-	handleDelete() {
-		this.props.onDelete(this.props.mage);
-	}
-
-	
-	updateEquipements(updatedEquips){
-		client({
-			method: 'PATCH', 
-			path: getLink(this.props.mage),
-			entity: {"equipements":updatedEquips.map(equip => getLink(equip))},
-			headers: {'Content-Type': 'application/json'}
-		})
-		.catch(err => alert(JSON.stringify(err)))
-		.done(response => {
-			this.searchEquipements();
-		});
-	}
-	
-	setStateEquipements(updatedEquips){
-		this.setState({
-			equipements: updatedEquips,
-			isLoaded: true,
-			score:updatedEquips.reduce((acc, e) => acc + e.vitality, 0)
-		});
-		this.props.updateAvailableEquipements();
-	}
-	
-	searchEquipements() {
-		//alert(JSON.stringify(getLink(this.props.mage)));
-		client({method: 'GET', path: getLink(this.props.mage)+"/equipements"})
-		.done(response => {
-			//alert(JSON.stringify(response.entity._embedded.equipements));
-			this.setStateEquipements(response.entity._embedded.equipements);
-		});
-	}
-	
-	render() {
-		
-		const equipements = this.state.isLoaded ? 
-			this.state.equipements.length ? 		
-				this.state.equipements.map(equip => 
-					<RefEquip key={getLink(equip)} equip={equip}/>) 
-			: "No prize" : "";	
-		const showOrUpdate = this.state.isLoaded? 
-			<UpdateEquipementDialog key={'updateEquip_'+getLink(this.props.mage)} mage={this.props.mage} attributes={this.props.attributes} 
-					updateEquipements={this.updateEquipements} currentEquipements={this.state.equipements}
-					availableEquipements={this.props.availableEquipements}/>:
-			<button onClick={this.searchEquipements}>Show</button>
-		return (
-			<tr>
-				<td>{this.props.mage.entity.name}</td>
-				<td>{this.props.mage.entity.description}</td>
-				<td>{this.state.score}</td>
-				<td>{equipements}{showOrUpdate}</td>
-				<td>
-					<UpdateDialog mage={this.props.mage}
-								  attributes={this.props.attributes}
-								  onUpdate={this.props.onUpdate}/>
-					<button onClick={this.handleDelete}>Delete</button>
-				</td>
-			</tr>
-		)
-	}
-}
-
-class RefEquip extends React.Component {
-	constructor(props) {
-		super(props);
-	}
-	
-	render(){
-		return (
-			<>
-			<a href={'#equip'+getLink(this.props.equip)}>{this.props.equip.name}</a>
-			<br/>
-			</>
-		);
-	} 
-}
-
-class UpdateDialog extends React.Component {
-
-	constructor(props) {
-		super(props);
-		this.handleSubmit = this.handleSubmit.bind(this);
-	}
-
-	handleSubmit(e) {
-		e.preventDefault();
-		const updatedMage = {};
-		this.props.attributes.forEach(attribute => {
-			updatedMage[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
-		});
-		this.props.onUpdate(this.props.mage, updatedMage);
-		window.location = "#";
-	}
-
-	render() {
-		const inputTextArea = this.props.attributes
-		.filter(attribute => attribute=="description")
-		.map(attribute =>
-			<p key={this.props.mage.entity[attribute]}>
-				<label htmlFor={attribute} className="form-label">{attribute}</label>
-				<textarea defaultValue={this.props.mage.entity[attribute]}
-					   ref={attribute} className="form-control" rows="5"/>
-			</p>
-		);
-		const inputsSimple = this.props.attributes
-		.filter(attribute => attribute!="description")
-		.map(attribute =>
-			<p key={this.props.mage.entity[attribute]}>
-				<label htmlFor={attribute} className="form-label">{attribute}</label>
-				<input type="text" defaultValue={this.props.mage.entity[attribute]}
-					   ref={attribute} className="field form-control"/>
-			</p>			
-		);
-
-		const dialogId = "updateMage-" + getLink(this.props.mage);
-
-		return (
-			<div key={getLink(this.props.mage)}>
-				<button><a href={"#" + dialogId}>Update</a></button>
-				<div id={dialogId} className="modalDialog">
-					<div>
-						<a href="#" title="Close" className="close">X</a>
-
-						<h2>Update an article</h2>
-
-						<form>
-							{inputsSimple}
-							{inputTextArea}
-							<button onClick={this.handleSubmit}>Update</button>
-						</form>
-					</div>
-				</div>
-			</div>
-		)
-	}
-
-};
-
-class UpdateEquipementDialog extends React.Component {
-	constructor(props) {
-		super(props);
-		this.handleSubmit = this.handleSubmit.bind(this);		
-	}
-
-	handleSubmit(e) {
-		e.preventDefault();
-		const equips = [];
-		this.props.currentEquipements.forEach(equip => {
-			const checkbox = document.getElementById(getLink(equip));
-			if(checkbox && checkbox.checked) {
-				equips.push(checkbox.value.trim());
-			}
-		});
-		this.props.availableEquipements.forEach(equip => {
-			const checkbox = document.getElementById(getLink(equip)+getLink(this.props.mage));
-			if(checkbox && checkbox.checked) {
-				equips.push(checkbox.value.trim());
-			}
-		});
-		this.props.updateEquipements(equips);
-		window.location = "#";
-	}
-
-	render() {
-		const currentEquipements = this.props.currentEquipements.map(equip =>
-			<div className='form-check' key={getLink(equip)}>
-				<input className="form-check-input" type="checkbox" defaultChecked value={getLink(equip)} id={getLink(equip)}/>
-				<label className="form-check-label" htmlFor={getLink(equip)}>
-					{equip.name}
-				</label>
-			</div>
-		);
-		const newsEquipements = this.props.availableEquipements.map(equip =>
-			<div className='form-check' key={getLink(equip)+getLink(this.props.mage)}>
-				<input className="form-check-input" type="checkbox" value={getLink(equip)} id={getLink(equip)+getLink(this.props.mage)}/>
-				<label className="form-check-label" htmlFor={getLink(equip)+getLink(this.props.mage)}>
-					{equip.name}
-				</label>
-			</div>
-		);
-		const dialogId = "updateEquipements-" + getLink(this.props.mage);
-
-		return (
-			<div key={getLink(this.props.mage)}>
-				<button><a className='updatePrizes' href={"#" + dialogId}>Update prizes</a></button>
-				<div id={dialogId} className="modalDialog">
-					<div>
-						<a href="#" title="Close" className="close">X</a>
-						<h2>Give and retreive prizes</h2>
-
-						<form>
-							<div>
-								<h5>Prizes obtainables</h5>
-								{newsEquipements}
-							</div>
-							<div>
-								<h5>Already obtained prizes</h5>
-								{currentEquipements}
-							</div>
-							<button onClick={this.handleSubmit}>Update</button>
-						</form>
-					</div>
-				</div>
-			</div>
-		)
-	}
-
-};
 
 
 export default MageList; // Don’t forget to use export default!
