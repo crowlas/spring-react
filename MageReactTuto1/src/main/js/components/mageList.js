@@ -7,6 +7,14 @@ function getLink(json){
 		json : json._links.self.href : json.entity._links.self.href;
 }
 
+/*
+function searchAvailableEquipements() {
+		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
+		.done(response => {
+			return response.entity._embedded.equipements
+		});		
+	}
+*/
 class MageList extends React.Component{
 	constructor(props) {
 		super(props);
@@ -15,6 +23,20 @@ class MageList extends React.Component{
 		this.handleNavNext = this.handleNavNext.bind(this);
 		this.handleNavLast = this.handleNavLast.bind(this);
 		this.handleInput = this.handleInput.bind(this);
+		
+		this.updateAvailableEquipements = this.updateAvailableEquipements.bind(this)
+		this.state = {
+			availableEquipements: this.updateAvailableEquipements()
+		};
+	}
+	
+	 updateAvailableEquipements(){
+		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
+		.done(response => {
+			this.setState({
+				availableEquipements: response.entity._embedded.equipements
+			})
+		});
 	}
 	
 	handleInput(e) {
@@ -51,7 +73,8 @@ class MageList extends React.Component{
 	render() {
 		const mages = this.props.mages.map(mage =>
 			<Mage key={getLink(mage)} mage={mage} attributes={this.props.attributes} 
-					onUpdate={this.props.onUpdate} onDelete={this.props.onDelete}/>
+					onUpdate={this.props.onUpdate} onDelete={this.props.onDelete}
+					availableEquipements={this.state.availableEquipements} updateAvailableEquipements={this.updateAvailableEquipements}/>
 		);
 	
 		const navLinks = [];
@@ -131,6 +154,7 @@ class Mage extends React.Component{
 			isLoaded: true,
 			score:updatedEquips.reduce((acc, e) => acc + e.vitality, 0)
 		});
+		this.props.updateAvailableEquipements();
 	}
 	
 	searchEquipements() {
@@ -139,7 +163,7 @@ class Mage extends React.Component{
 		.done(response => {
 			//alert(JSON.stringify(response.entity._embedded.equipements));
 			this.setStateEquipements(response.entity._embedded.equipements);
-		});		
+		});
 	}
 	
 	render() {
@@ -151,7 +175,8 @@ class Mage extends React.Component{
 			: "No prize" : "";	
 		const showOrUpdate = this.state.isLoaded? 
 			<UpdateEquipementDialog key={'updateEquip_'+getLink(this.props.mage)} mage={this.props.mage} attributes={this.props.attributes} 
-					updateEquipements={this.updateEquipements} currentEquipements={this.state.equipements}/>:
+					updateEquipements={this.updateEquipements} currentEquipements={this.state.equipements}
+					availableEquipements={this.props.availableEquipements}/>:
 			<button onClick={this.searchEquipements}>Show</button>
 		return (
 			<tr>
@@ -247,49 +272,28 @@ class UpdateDialog extends React.Component {
 };
 
 class UpdateEquipementDialog extends React.Component {
-
 	constructor(props) {
 		super(props);
-		this.handleSubmit = this.handleSubmit.bind(this);
-		
-		this.state = {new_equipements:[]}; // variables global
+		this.handleSubmit = this.handleSubmit.bind(this);		
 	}
 
 	handleSubmit(e) {
 		e.preventDefault();
 		const equips = [];
-		this.state.new_equipements.forEach(equip => {
+		this.props.currentEquipements.forEach(equip => {
 			const checkbox = document.getElementById(getLink(equip));
-			if(checkbox.checked) {
+			if(checkbox && checkbox.checked) {
 				equips.push(checkbox.value.trim());
 			}
 		});
-		this.props.currentEquipements.forEach(equip => {
-			const checkbox = document.getElementById(getLink(equip));
-			if(checkbox.checked) {
+		this.props.availableEquipements.forEach(equip => {
+			const checkbox = document.getElementById(getLink(equip)+getLink(this.props.mage));
+			if(checkbox && checkbox.checked) {
 				equips.push(checkbox.value.trim());
 			}
 		});
 		this.props.updateEquipements(equips);
 		window.location = "#";
-	}
-	
-	componentDidMount(){
-		this.searchAvailableEquipements();
-	}
-	
-	componentWillReceiveProps(){
-		this.searchAvailableEquipements();
-	}
-	
-	searchAvailableEquipements() {
-		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
-		.done(response => {
-			this.setState({
-				new_equipements: response.entity._embedded.equipements
-			});
-			
-		});		
 	}
 
 	render() {
@@ -301,10 +305,10 @@ class UpdateEquipementDialog extends React.Component {
 				</label>
 			</div>
 		);
-		const availablesEquipements = this.state.new_equipements.map(equip =>
-			<div className='form-check' key={getLink(equip)}>
-				<input className="form-check-input" type="checkbox" value={getLink(equip)} id={getLink(equip)}/>
-				<label className="form-check-label" htmlFor={getLink(equip)}>
+		const newsEquipements = this.props.availableEquipements.map(equip =>
+			<div className='form-check' key={getLink(equip)+getLink(this.props.mage)}>
+				<input className="form-check-input" type="checkbox" value={getLink(equip)} id={getLink(equip)+getLink(this.props.mage)}/>
+				<label className="form-check-label" htmlFor={getLink(equip)+getLink(this.props.mage)}>
 					{equip.name}
 				</label>
 			</div>
@@ -313,7 +317,7 @@ class UpdateEquipementDialog extends React.Component {
 
 		return (
 			<div key={getLink(this.props.mage)}>
-				<button><a href={"#" + dialogId}>Update prizes</a></button>
+				<button><a className='updatePrizes' href={"#" + dialogId}>Update prizes</a></button>
 				<div id={dialogId} className="modalDialog">
 					<div>
 						<a href="#" title="Close" className="close">X</a>
@@ -322,7 +326,7 @@ class UpdateEquipementDialog extends React.Component {
 						<form>
 							<div>
 								<h5>Prizes obtainables</h5>
-								{availablesEquipements}
+								{newsEquipements}
 							</div>
 							<div>
 								<h5>Already obtained prizes</h5>
