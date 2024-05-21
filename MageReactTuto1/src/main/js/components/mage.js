@@ -89,11 +89,13 @@ class MageEquipements extends React.Component {
 		const equipements = this.props.isLoaded ? 
 			this.props.equipements.length ? 		
 				this.props.equipements.map(equip => 
-					<li><a href={'#equip'+getLink(equip)}>{equip.name}</a></li>
+					<div>
+						<a href={'#equip'+getLink(equip)}>{equip.name}</a>
+					</div>
 				) 
 				: "No prize" : "";	
 		return (
-			<ul>{equipements}</ul>
+			<div>{equipements}</div>
 		);
 	} 
 }
