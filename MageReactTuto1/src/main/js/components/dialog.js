@@ -136,49 +136,49 @@ class UpdateDialog extends React.Component {
 class UpdateEquipementDialog extends React.Component {
 	constructor(props) {
 		super(props);
-		this.handleSubmit = this.handleSubmit.bind(this);		
+		this.handleSubmit = this.handleSubmit.bind(this);
+		
+		this.toggleInCheckedEquip = this.toggleInCheckedEquip.bind(this);
+		this.state = {
+			linkMage : getLink(this.props.mage),
+			currentEquipements : this.props.currentEquipements,
+			checkedEquip : this.props.currentEquipements.map((x) => getLink(x))
+		}
+	}
+	
+	static getDerivedStateFromProps(props, current_state) {
+		if (current_state.currentEquipements !== props.currentEquipements) {
+	      return {
+	        currentEquipements: props.currentEquipements,
+	        checkedEquip: props.currentEquipements.map((x) => getLink(x))
+	      }
+	    }
+	    return null
+	}
+	
+	toggleInCheckedEquip(linkEquip){
+		var equips = this.state.checkedEquip;
+		var index = equips.indexOf(linkEquip);
+		if(!equips.includes(linkEquip)){
+			equips.push(linkEquip);
+		} else {
+			equips.splice(index, 1);
+		}
+		this.setState({
+			checkedEquip : equips
+		});
 	}
 
 	handleSubmit(e) {
 		e.preventDefault();
-		const equips = [];
-		this.props.currentEquipements.forEach(equip => {
-			const checkbox = document.getElementById(getLink(equip));
-			if(checkbox && checkbox.checked) {
-				equips.push(checkbox.value.trim());
-			}
-		});
-		this.props.availableEquipements.forEach(equip => {
-			const checkbox = document.getElementById(getLink(equip)+getLink(this.props.mage));
-			if(checkbox && checkbox.checked) {
-				equips.push(checkbox.value.trim());
-			}
-		});
-		this.props.updateEquipements(equips);
+		this.props.updateEquipements(this.state.checkedEquip);
 		window.location = "#";
 	}
 
-	render() {
-		const currentEquipements = this.props.currentEquipements.map(equip =>
-			<div className='form-check' key={getLink(equip)}>
-				<input className="form-check-input" type="checkbox" defaultChecked value={getLink(equip)} id={getLink(equip)}/>
-				<label className="form-check-label" htmlFor={getLink(equip)}>
-					{equip.name}
-				</label>
-			</div>
-		);
-		const newsEquipements = this.props.availableEquipements.map(equip =>
-			<div className='form-check' key={getLink(equip)+getLink(this.props.mage)}>
-				<input className="form-check-input" type="checkbox" value={getLink(equip)} id={getLink(equip)+getLink(this.props.mage)}/>
-				<label className="form-check-label" htmlFor={getLink(equip)+getLink(this.props.mage)}>
-					{equip.name}
-				</label>
-			</div>
-		);
-		const dialogId = "updateEquipements-" + getLink(this.props.mage);
-
+	render() {	
+		const dialogId = "updateEquipements-" + this.state.linkMage;
 		return (
-			<div key={getLink(this.props.mage)}>
+			<div>
 				<button><a className='updatePrizes' href={"#" + dialogId}>Update prizes</a></button>
 				<div id={dialogId} className="modalDialog">
 					<div>
@@ -186,14 +186,13 @@ class UpdateEquipementDialog extends React.Component {
 						<h2>Give and retreive prizes</h2>
 
 						<form>
-							<div>
-								<h5>Prizes obtainables</h5>
-								{newsEquipements}
-							</div>
-							<div>
-								<h5>Already obtained prizes</h5>
-								{currentEquipements}
-							</div>
+							<CheckboxGroupEquipement key={'equipsAvailable'+this.state.linkMage} 
+									toggleInCheckedEquip={this.toggleInCheckedEquip} title={"Prizes obtainables"}
+									defaultChecked={false} equipements={this.props.availableEquipements}/>
+							<CheckboxGroupEquipement key={'equipsCurrent'+this.state.linkMage} 
+									toggleInCheckedEquip={this.toggleInCheckedEquip} title={"Already obtained prizes"}
+									defaultChecked={true} equipements={this.state.currentEquipements}/>
+									
 							<button onClick={this.handleSubmit}>Update</button>
 						</form>
 					</div>
@@ -203,6 +202,47 @@ class UpdateEquipementDialog extends React.Component {
 	}
 
 };
+
+class CheckboxGroupEquipement extends React.Component {
+	render() {
+		const equipements = this.props.equipements.map(equip =>
+			{ 
+				const linkEquip = getLink(equip);
+				return (
+					<CheckboxEquipement key={linkEquip+this.props.linkMage} value={linkEquip} 
+							toggleInCheckedEquip={this.props.toggleInCheckedEquip}
+							defaultChecked={this.props.defaultChecked} title={equip.name}/>
+				)
+			});
+		return(
+			<div>
+				<h5>{this.props.title}</h5>
+				{equipements}
+			</div>
+		);	
+	}
+}
+
+class CheckboxEquipement extends React.Component {
+	constructor(props){
+		super(props);
+		this.handleToggleCheckbox = this.handleToggleCheckbox.bind(this);
+	}
+	
+	handleToggleCheckbox(){
+		this.props.toggleInCheckedEquip(this.props.value);		
+	}
+	
+	render() {
+		return(
+			<div className='form-check'>
+				<input className="form-check-input" type="checkbox" id={this.key} onClick={this.handleToggleCheckbox}
+						defaultChecked={this.props.defaultChecked} value={this.props.value} />
+				<label className="form-check-label" htmlFor={this.key}>{this.props.title}</label>
+			</div>
+		);	
+	}
+}
 
 
 export {CreateDialog, UpdateDialog, UpdateEquipementDialog}; // Don’t forget to use export default!
