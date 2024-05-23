@@ -159,7 +159,7 @@ class UpdateEquipementDialog extends React.Component {
 	toggleInCheckedEquip(linkEquip){
 		var equips = this.state.checkedEquip;
 		var index = equips.indexOf(linkEquip);
-		if(!equips.includes(linkEquip)){
+		if(index===-1){
 			equips.push(linkEquip);
 		} else {
 			equips.splice(index, 1);
