@@ -15,6 +15,7 @@ import jakarta.persistence.Version;
 
 @Entity
 public class Mage {
+	private static int index = 0;
     private @Id @GeneratedValue Long id;
     
     private String name;
@@ -28,7 +29,10 @@ public class Mage {
     
     private @Version @JsonIgnore Long version;
 
-    public Mage() {}
+    public Mage() {
+    	this.name = "Article_"+index;
+    	index++;
+    }
     
     public Long getId() {
 		return id;
@@ -39,7 +43,7 @@ public class Mage {
 	}
     
     public String getName(){
-    	return (this.name == null || this.name.isEmpty())? "Article_"+this.id : this.name;
+    	return this.name;
     }
     
     public void setName(String name){

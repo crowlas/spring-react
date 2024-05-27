@@ -20,9 +20,10 @@ class App extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {mages: [], attributes: [], page: 1, pageSize: 2, links: {}, logs: ""}; // variables gloabal
+		this.state = {mages: [], mageName: "", schema: {}, attributes: [], page: 1, pageSize: 2, links: {}, logs: ""}; // variables gloabal
 		// ecouteurs
 		this.updatePageSize = this.updatePageSize.bind(this);
+		this.updateMageName = this.updateMageName.bind(this);
 		this.onCreate = this.onCreate.bind(this);
 		this.onDelete = this.onDelete.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
@@ -30,22 +31,27 @@ class App extends React.Component {
 		this.refreshCurrentPage = this.refreshCurrentPage.bind(this);
 		this.messageWebsocket = this.messageWebsocket.bind(this);
 		this.initMessageWebsocket = this.initMessageWebsocket.bind(this);
+		this.loadAttributeFromServer = this.loadAttributeFromServer.bind(this);
 		
 	}
 	
-	loadFromServer(pageSize) {
-		followApi([{rel: 'mages', params: {size: pageSize}}]
+	updateMageName(mageName){
+		if (mageName !== this.state.mageName) {
+			this.loadFromServer(this.state.pageSize, mageName);
+		}	
+	}
+	
+	loadAttributeFromServer(rel) {
+		alert("cc1="+rel)
+		client({method: 'GET', path: '/api/profile/'+rel}).done(schema => {
+			alert("schema="+JSON.stringify(schema))
+			this.setState({schema: schema.entity});
+		});
+	}
+	
+	loadFromServer(pageSize, mageName) {
+		followApi([{rel: 'magesSearch', params: {size: pageSize, name: mageName}}]
 		).then(mageCollection => {
-			return client({
-				method: 'GET',
-				path: mageCollection.entity._links.profile.href,
-				headers: {'Accept': 'application/schema+json'}
-			}).then(schema => {
-				this.schema = schema.entity;
-				this.links = mageCollection.entity._links;
-				return mageCollection;
-			});
-		}).then(mageCollection => {
 			return mageCollection.entity._embedded.mages.map(mage =>
 					client({
 						method: 'GET',
@@ -57,8 +63,9 @@ class App extends React.Component {
 		}).done(mages => {
 			this.setState({
 				mages: mages,
-				attributes: Object.keys(this.schema.properties),
+				attributes: Object.keys(this.state.schema.properties),
 				pageSize: pageSize,
+				mageName:mageName,
 				links: this.links
 			});
 		});
@@ -96,7 +103,7 @@ class App extends React.Component {
 			})
 		})
 		.then(response => {
-			return followApi([{rel: 'mages', params: {'size': this.state.pageSize}}]);
+			return followApi([{rel: 'magesSearch', params: {'size': this.state.pageSize, 'name': this.state.mageName}}]);
 		})
 		.catch(err => alert(JSON.stringify(err.entity.errors)))
 		.done(response => {
@@ -150,6 +157,7 @@ class App extends React.Component {
 	}
 	
 	componentDidMount() {
+		this.loadAttributeFromServer('mages');
 		this.loadFromServer(this.state.pageSize);
 		stompClient.register([
 			{route: '/topic/newMage', callback: this.messageWebsocket},
@@ -169,10 +177,11 @@ class App extends React.Component {
 	}
 	
 	refreshCurrentPage(message) {
-		followApi([{rel: 'mages',
+		followApi([{rel: 'magesSearch',
 			params: {
 				size: this.state.pageSize,
-				page: this.state.page.number
+				page: this.state.page.number,
+				name : this.state.mageName
 			}
 		}]).then(mageCollection => {
 			this.links = mageCollection.entity._links;
@@ -205,7 +214,7 @@ class App extends React.Component {
 		        <h1>DEMO Plateform de partage d'articles</h1>
 		        <p>
 		        	<span>Un projet REACT permettant d'intéragir avec une </span>
-		        	<a className="App-link" href="http://localhost:8080/api"
+		        	<a className="App-link" href="/api"
 		          		target="_blank" rel="noopener noreferrer">API</a>.
 		        </p>
 		      </header>
@@ -220,12 +229,15 @@ class App extends React.Component {
 					<MageList mages={this.state.mages}
 							  links={this.state.links}
 							  pageSize={this.state.pageSize}
+							  mageName={this.state.mageName}
 							  attributes={this.state.attributes.filter(attribute => attribute != "equipements")}
 							  onNavigate={this.onNavigate}
 							  onUpdate={this.onUpdate}
 							  onDelete={this.onDelete}
 							  refreshCurrentPage={this.refreshCurrentPage}
-							  updatePageSize={this.updatePageSize}/>
+							  updatePageSize={this.updatePageSize}
+							  updateMageName={this.updateMageName}
+							  />
 	            </div>
 	            <AppEquipement/>
 		      </div>

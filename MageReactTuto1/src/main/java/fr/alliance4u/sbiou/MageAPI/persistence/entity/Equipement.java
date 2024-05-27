@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 public class Equipement {
+	private static int index = 0;
     private @Id @GeneratedValue Long id;
     @Min(value = 1, message = "Vitality should not be inferior to 1.")
     private int vitality;
@@ -23,7 +24,9 @@ public class Equipement {
 	}
 
     public Equipement() {
-        this.vitality = getRandomVitality();
+        this.name = "Prize_"+index;
+    	this.vitality = getRandomVitality();
+    	index++;
     }
     
     public Equipement(int vitality) {
@@ -31,7 +34,7 @@ public class Equipement {
     }
 
     public String getName(){
-        return (this.name == null || this.name.isEmpty())? "Prize_"+this.id : this.name;
+        return this.name;
     }
     
     public void setName(String name){

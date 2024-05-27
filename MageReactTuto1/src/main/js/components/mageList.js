@@ -12,6 +12,8 @@ class MageList extends React.Component{
 		this.handleNavNext = this.handleNavNext.bind(this);
 		this.handleNavLast = this.handleNavLast.bind(this);
 		this.handleInput = this.handleInput.bind(this);
+		this.handleInputText = this.handleInputText.bind(this);
+		
 		
 		this.updateAvailableEquipements = this.updateAvailableEquipements.bind(this)
 		this.state = {
@@ -20,7 +22,7 @@ class MageList extends React.Component{
 	}
 	
 	 updateAvailableEquipements(){
-		client({method: 'GET', path: "http://localhost:8080/api/equipements/search/findAllAvailable"})
+		client({method: 'GET', path: "/api/equipements/search/findAllAvailable"})
 		.done(response => {
 			this.setState({
 				availableEquipements: response.entity._embedded.equipements
@@ -37,6 +39,12 @@ class MageList extends React.Component{
 			ReactDOM.findDOMNode(this.refs.pageSize).value =
 				pageSize.substring(0, pageSize.length - 1);
 		}
+	}
+	
+	handleInputText(e) {
+		e.preventDefault();
+		const mageName = ReactDOM.findDOMNode(this.refs.mageName).value;
+		this.props.updateMageName(mageName);
 	}
 	
 	handleNavFirst(e){
@@ -86,6 +94,10 @@ class MageList extends React.Component{
 				<p>
 					<span>Number of results : </span>
 					<input ref="pageSize" defaultValue={this.props.pageSize} onInput={this.handleInput}/>
+				</p>
+				<p>
+					<span>Nom de l'article : </span>
+					<input ref="mageName" defaultValue={this.props.mageName} onInput={this.handleInputText}/>
 				</p>
 				<table className="table table-bordered">
 					<thead>
