@@ -31,8 +31,7 @@ class App extends React.Component {
 		this.refreshCurrentPage = this.refreshCurrentPage.bind(this);
 		this.messageWebsocket = this.messageWebsocket.bind(this);
 		this.initMessageWebsocket = this.initMessageWebsocket.bind(this);
-		this.loadAttributeFromServer = this.loadAttributeFromServer.bind(this);
-		
+		this.loadAttributeFromServer = this.loadAttributeFromServer.bind(this);		
 	}
 	
 	updateMageName(mageName){
@@ -141,7 +140,7 @@ class App extends React.Component {
 		}).done(mages => {
 			this.setState({
 				mages: mages,
-				attributes: Object.keys(this.schema.properties),
+				attributes: Object.keys(this.state.schema.properties),
 				pageSize: this.state.pageSize,
 				page: this.page,
 				links: this.links
@@ -199,7 +198,7 @@ class App extends React.Component {
 			this.setState({
 				page: this.state.page,
 				mages: mages,
-				attributes: Object.keys(this.schema.properties),
+				attributes: Object.keys(this.state.schema.properties),
 				pageSize: this.state.pageSize,
 				links: this.links
 			});
